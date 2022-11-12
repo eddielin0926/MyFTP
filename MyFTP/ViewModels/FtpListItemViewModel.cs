@@ -72,7 +72,7 @@ namespace MyFTP.ViewModels
 			_transferService = transferService;
 			_dialogService = dialogService;
 			Logger = logger;
-			_guid = Guid.NewGuid().ToString();
+			_guid = System.Guid.NewGuid().ToString();
 			_weakMessenger.Register<object, string>(this, _guid, UploadFinished);
 
 			Client.EnableThreadSafeDataConnections = true;
@@ -121,6 +121,7 @@ namespace MyFTP.ViewModels
 		public WeakReferenceMessenger WeakMessenger { get => _weakMessenger; }
 		public ITransferItemService TransferService { get => _transferService; }
 		public IDialogService DialogService { get => _dialogService; }
+		public String Guid { get => _guid; }
 		public ILogger Logger { get; }
 		#endregion
 
