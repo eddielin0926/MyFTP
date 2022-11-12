@@ -5,6 +5,7 @@ using Microsoft.Toolkit.Mvvm.Messaging;
 using MyFTP.Collections;
 using MyFTP.Services;
 using MyFTP.Utils;
+using MyFTP.ViewModels.Commands;
 using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
@@ -105,18 +106,21 @@ namespace MyFTP.ViewModels
 					return Parent.FullName + "/" + Name;
 			}
 		}
-		public FtpPermission OwnerPermissions { get => _ownerPermissions; private set => Set(ref _ownerPermissions, value); }
-		public FtpPermission GroupPermissions { get => _groupPermissions; private set => Set(ref _groupPermissions, value); }
-		public FtpPermission OthersPermissions { get => _othersPermissions; private set => Set(ref _othersPermissions, value); }
-		public FtpListItemViewModel Parent { get => _parent; private set => Set(ref _parent, value); }
+		public FtpPermission OwnerPermissions { get => _ownerPermissions; set => Set(ref _ownerPermissions, value); }
+		public FtpPermission GroupPermissions { get => _groupPermissions; set => Set(ref _groupPermissions, value); }
+		public FtpPermission OthersPermissions { get => _othersPermissions; set => Set(ref _othersPermissions, value); }
+		public FtpListItemViewModel Parent { get => _parent; set => Set(ref _parent, value); }
 		public FtpObjectType Type { get; }
 		public FtpObjectSubType SubType { get; }
 		public bool IsDirectory => Type == FtpObjectType.Directory;
 		public long Size { get; }
 		public DateTime Modified { get; }
 		public ReadOnlyObservableCollection<FtpListItemViewModel> Items { get; }
-		public bool IsLoaded { get => _isLoaded; private set => Set(ref _isLoaded, value); }
-		public bool IsLoading { get => _isLoading; private set => Set(ref _isLoading, value); }
+		public bool IsLoaded { get => _isLoaded; set => Set(ref _isLoaded, value); }
+		public bool IsLoading { get => _isLoading; set => Set(ref _isLoading, value); }
+		public WeakReferenceMessenger WeakMessenger { get => _weakMessenger; }
+		public ITransferItemService TransferService { get => _transferService; }
+		public IDialogService DialogService { get => _dialogService; }
 		public ILogger Logger { get; }
 		#endregion
 
@@ -130,7 +134,7 @@ namespace MyFTP.ViewModels
 		public IAsyncRelayCommand<string> RenameCommand { get; }
 		public IAsyncRelayCommand<string> CreateFolderCommand { get; }
 
-		public async Task RefreshCommandAsync(CancellationToken token = default)
+		private async Task RefreshCommandAsync(CancellationToken token = default)
 		{
 			IsLoading = true;
 			RefreshCommand.NotifyCanExecuteChanged();
@@ -159,6 +163,7 @@ namespace MyFTP.ViewModels
 				RefreshCommand.NotifyCanExecuteChanged();
 			}
 		}
+		
 		private async Task UploadFilesCommandAsync(CancellationToken token)
 		{
 			try
@@ -184,6 +189,7 @@ namespace MyFTP.ViewModels
 				_weakMessenger.Send<ErrorMessage>(new ErrorMessage(e));
 			}
 		}
+		
 		private async Task UploadFolderCommandAsync(CancellationToken token)
 		{
 			try
@@ -200,6 +206,7 @@ namespace MyFTP.ViewModels
 				_weakMessenger.Send<ErrorMessage>(new ErrorMessage(e));
 			}
 		}
+		
 		private async Task DownloadCommandAsync(IEnumerable<FtpListItemViewModel> arg, CancellationToken token)
 		{
 			try
@@ -247,6 +254,7 @@ namespace MyFTP.ViewModels
 				_weakMessenger.Send<ErrorMessage>(new ErrorMessage(e));
 			}
 		}
+		
 		private async Task DeleteCommandAsync(IEnumerable<FtpListItemViewModel> arg, CancellationToken token)
 		{
 			try
@@ -293,7 +301,7 @@ namespace MyFTP.ViewModels
 				_weakMessenger.Send<ErrorMessage>(new ErrorMessage(e));
 			}
 		}
-
+		
 		private async Task OpenRenameDialogCommandAsync(CancellationToken token)
 		{
 			try
@@ -312,7 +320,7 @@ namespace MyFTP.ViewModels
 				OpenRenameDialogCommand.NotifyCanExecuteChanged();
 			}
 		}
-
+		
 		private async Task RenameCommandAsync(string newItemName, CancellationToken token)
 		{
 			try
@@ -341,7 +349,7 @@ namespace MyFTP.ViewModels
 				RenameCommand.NotifyCanExecuteChanged();
 			}
 		}
-
+		
 		private async Task CreateFolderCommandAsync(string folderName, CancellationToken token)
 		{
 			try
