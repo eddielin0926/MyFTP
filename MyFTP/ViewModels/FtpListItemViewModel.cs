@@ -118,6 +118,8 @@ namespace MyFTP.ViewModels
 		public ReadOnlyObservableCollection<FtpListItemViewModel> Items { get; }
 		public bool IsLoaded { get => _isLoaded; set => Set(ref _isLoaded, value); }
 		public bool IsLoading { get => _isLoading; set => Set(ref _isLoading, value); }
+		public bool IsRenameDialogOpen { get => _isRenameDialogOpen; set => Set(ref _isRenameDialogOpen, value); }
+		public bool IsRenaming { get => _isRenaming; set => Set(ref _isRenaming, value); }
 		public WeakReferenceMessenger WeakMessenger { get => _weakMessenger; }
 		public ITransferItemService TransferService { get => _transferService; }
 		public IDialogService DialogService { get => _dialogService; }
