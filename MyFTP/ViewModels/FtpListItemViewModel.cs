@@ -22,7 +22,7 @@ namespace MyFTP.ViewModels
 	public class FtpListItemViewModel : BindableItem, IDragTarget, IDropTarget
 	{
 		#region fields		
-		private readonly IObservableSortedCollection<FtpListItemViewModel> _items;
+		private IObservableSortedCollection<FtpListItemViewModel> _items;
 		private bool _isLoaded;
 		private bool _isLoading;
 		private bool _isRenameDialogOpen;
@@ -533,6 +533,11 @@ namespace MyFTP.ViewModels
 				return "[Error: No ISettings service]";
 			return settings.GetStringFromResource(resourceName, "Messages");
 		}
+
+		public void RemoveItem(FtpListItemViewModel item)
+        {
+			_items.RemoveItem(item);
+        }
 		#endregion
 	}
 }
