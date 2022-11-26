@@ -95,7 +95,7 @@ namespace MyFTP.ViewModels
 
 		#region properties
 		public IFtpClient Client { get; }
-		public string Name { get => _name; private set => Set(ref _name, value); }
+		public string Name { get => _name; set => Set(ref _name, value); }
 		public string FullName
 		{
 			get
@@ -528,7 +528,7 @@ namespace MyFTP.ViewModels
 
 		public bool IsDragItemSupported(IDragTarget item) => item.GetType() == typeof(FtpListItemViewModel) && item != this;
 
-		private string GetLocalized(string resourceName)
+		public string GetLocalized(string resourceName)
 		{
 			var settings = App.Current.Services.GetService<ISettings>();
 			if (settings == null)

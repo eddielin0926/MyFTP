@@ -19,8 +19,7 @@ namespace MyFTP.ViewModels.Commands
         private FtpListItemViewModel ftpListItemView;
         private readonly IObservableSortedCollection<FtpListItemViewModel>items;
 
-        public AsyncRefreshCommand(FtpListItemViewModel ftpListItemViewModel, 
-            IObservableSortedCollection<FtpListItemViewModel> items)
+        public AsyncRefreshCommand(FtpListItemViewModel ftpListItemViewModel, IObservableSortedCollection<FtpListItemViewModel> items)
         {
             this.ftpListItemView = ftpListItemViewModel;
             this.items = items;
