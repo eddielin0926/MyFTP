@@ -16,64 +16,7 @@ namespace MyFTP.Utils
 	public class DragAndDropHelper
 	{
 		#region enabled drag items from app		
-		public static string DragItemsFormatId { get; } = "DragItemsFormatId";
-		public static bool GetIsDragItemsEnabled(UIElement element) => (bool)element.GetValue(IsDragItemsEnabledProperty);
-		public static void SetIsDragItemsEnabled(UIElement element, bool value)
-		{
-			element.SetValue(IsDragItemsEnabledProperty, value);
-			switch (element)
-			{
-				case ListViewBase lvb:
-					lvb.DragItemsStarting -= OnListviewDragItemsStarting;
-					lvb.DragItemsCompleted -= OnListviewDragItemsCompleted;
-					lvb.CanDragItems = value;
-					if (value)
-					{
-						lvb.DragItemsStarting += OnListviewDragItemsStarting;
-						lvb.DragItemsCompleted += OnListviewDragItemsCompleted;
-					}
-					break;
-
-				case muxc.TreeView tv when value:
-					tv.DragItemsStarting -= OnTreeviewDragItemsStarting;
-					tv.DragItemsCompleted -= OnTreeviewDragItemsCompleted;
-					tv.CanDragItems = value;
-					if (value)
-					{
-						tv.DragItemsStarting += OnTreeviewDragItemsStarting;
-						tv.DragItemsCompleted += OnTreeviewDragItemsCompleted;
-					}
-					break;
-			}
-		}
-		public static readonly DependencyProperty IsDragItemsEnabledProperty = DependencyProperty.RegisterAttached("IsDragItemsEnabled", typeof(bool), typeof(DragAndDropHelper), new PropertyMetadata(false));
-
-		private static void OnListviewDragItemsStarting(object sender, DragItemsStartingEventArgs args)
-		{
-			// Need to contains IDragTarget
-			args.Cancel = !args.Items.Any(x => x is IDragTarget);
-			args.Data.Properties.Add(DragItemsFormatId, args.Items);
-			args.Data.SetData(DragItemsFormatId, DragItemsFormatId);
-		}
-
-		private static void OnListviewDragItemsCompleted(ListViewBase sender, DragItemsCompletedEventArgs args)
-		{
-
-		}
-
-		private static void OnTreeviewDragItemsStarting(muxc.TreeView sender, muxc.TreeViewDragItemsStartingEventArgs args)
-		{
-			// Need to contains IDragTarget
-			args.Cancel = !args.Items.Any(x => x is IDragTarget);
-			args.Data.Properties.Add(DragItemsFormatId, args.Items);
-			args.Data.SetData(DragItemsFormatId, DragItemsFormatId);
-		}
-
-		private static void OnTreeviewDragItemsCompleted(muxc.TreeView sender, muxc.TreeViewDragItemsCompletedEventArgs args)
-		{
-
-		}
-
+		
 		#endregion
 
 		#region enabled drop from app and system
@@ -104,14 +47,14 @@ namespace MyFTP.Utils
 			if (target == null)
 				return;
 
-			if (args.DataView.Contains(DragItemsFormatId)
-							&& args.DataView.Properties.TryGetValue(DragItemsFormatId, out var value)
+			if (args.DataView.Contains(DragHelper.DragItemsFormatId)
+							&& args.DataView.Properties.TryGetValue(DragHelper.DragItemsFormatId, out var value)
 							&& value is IList<object> list) // dragging items from app
 			{
 				args.AcceptedOperation = DataPackageOperation.Move;
 				var message = GetLocalized("MoveItemTo");
 				args.DragUIOverride.Caption = string.Format("{0} {1}", message, target.Name.Truncate(80, true));
-				if (element is Panel panel && GetDragOverBackground(panel) is Brush brush)
+				if (element is Panel panel && DragHelper.GetDragOverBackground(panel) is Brush brush)
 				{
 					panel.Background = brush;
 				}
@@ -122,7 +65,7 @@ namespace MyFTP.Utils
 				args.AcceptedOperation = DataPackageOperation.Copy;
 				var message = GetLocalized("UploadItemTo");
 				args.DragUIOverride.Caption = string.Format("{0} {1}", message, target.Name.Truncate(80, true));
-				if (element is Panel panel && GetDragOverBackground(panel) is Brush brush)
+				if (element is Panel panel && DragHelper.GetDragOverBackground(panel) is Brush brush)
 				{
 					panel.Background = brush;
 				}
@@ -133,7 +76,7 @@ namespace MyFTP.Utils
 
 		private static void OnElementLeave(object sender, DragEventArgs e)
 		{
-			if (sender is Panel panel && GetDragOverBackground(panel) is Brush brush)
+			if (sender is Panel panel && DragHelper.GetDragOverBackground(panel) is Brush brush)
 			{
 				RevertBrush(panel);
 			}
@@ -144,8 +87,8 @@ namespace MyFTP.Utils
 			var target = GetDropTarget(element) as IDropTarget;
 			if (target == null)
 				return;
-			if (args.DataView.Contains(DragItemsFormatId)
-							&& args.DataView.Properties.TryGetValue(DragItemsFormatId, out var value)
+			if (args.DataView.Contains(DragHelper.DragItemsFormatId)
+							&& args.DataView.Properties.TryGetValue(DragHelper.DragItemsFormatId, out var value)
 							&& value is IList<object> list) // dragging items from app
 			{
 				var items = list.OfType<IDragTarget>().Where(item => target.IsDragItemSupported(item));
@@ -156,7 +99,7 @@ namespace MyFTP.Utils
 				var items = await args.DataView.GetStorageItemsAsync();
 				target.DropItems(items);
 			}
-			if (sender is Panel panel && GetDragOverBackground(panel) is Brush brush)
+			if (sender is Panel panel && DragHelper.GetDragOverBackground(panel) is Brush brush)
 			{
 				RevertBrush(panel);
 			}
@@ -164,7 +107,7 @@ namespace MyFTP.Utils
 
 		private static void RevertBrush(Panel panel)
 		{
-			Brush brush = GetDragLeaveBackground(panel);
+			Brush brush = DragHelper.GetDragLeaveBackground(panel);
 			panel.Background = brush;
 		}
 
@@ -181,16 +124,6 @@ namespace MyFTP.Utils
 			return settings.GetStringFromResource(resourceName, "Messages");
 		}
 		#endregion
-
-		#region Set Background
-		public static Brush GetDragOverBackground(Panel panel) => (Brush)panel.GetValue(DragOverBackgroundProperty);
-		public static void SetDragOverBackground(Panel panel, Brush value) => panel.SetValue(DragOverBackgroundProperty, value);
-		public static readonly DependencyProperty DragOverBackgroundProperty = DependencyProperty.RegisterAttached("DragOverBackground", typeof(Brush), typeof(DragAndDropHelper), new PropertyMetadata(null));
-
-		public static Brush GetDragLeaveBackground(Panel panel) => (Brush)panel.GetValue(DragLeaveBackgroundProperty);
-		public static void SetDragLeaveBackground(Panel panel, Brush value) => panel.SetValue(DragLeaveBackgroundProperty, value);
-		public static readonly DependencyProperty DragLeaveBackgroundProperty = DependencyProperty.RegisterAttached("DragLeaveBackground", typeof(Brush), typeof(DragAndDropHelper), new PropertyMetadata(null));
-		#endregion
 	}
 
 	public interface IDropTarget
@@ -199,9 +132,5 @@ namespace MyFTP.Utils
 		void DropItems(IEnumerable<IDragTarget> items);
 		void DropItems(IReadOnlyList<IStorageItem> items);
 		bool IsDragItemSupported(IDragTarget item);
-	}
-	public interface IDragTarget
-	{
-		string Name { get; }
 	}
 }
