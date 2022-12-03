@@ -174,7 +174,14 @@
     <Compile Include="Utils\FtpHostSettings.cs" />
     <Compile Include="Utils\StringExt.cs" />
     <Compile Include="Utils\WindowHelper.cs" />
+    <Compile Include="ViewModels\Commands\AsyncCreateFolderCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncDeleteCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncDownloadCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncOpenRenameDialogCommand.cs" />
     <Compile Include="ViewModels\Commands\AsyncRefreshCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncRenameCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncUploadFilesCommand.cs" />
+    <Compile Include="ViewModels\Commands\AsyncUploadFolderCommand.cs" />
     <Compile Include="ViewModels\FtpHostSettingsViewModel.cs" />
     <Compile Include="ViewModels\LoginViewModel.cs" />
     <Compile Include="Utils\Comparers\FtpListItemComparer.cs" />
