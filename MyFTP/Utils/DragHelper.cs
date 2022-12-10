@@ -17,7 +17,7 @@ namespace MyFTP.Utils
     {
         string Name { get; }
     }
-    public static class DragHelper
+    public class DragHelper
     {
 		public static string DragItemsFormatId { get; } = "DragItemsFormatId";
 		public static readonly DependencyProperty IsDragItemsEnabledProperty = DependencyProperty.RegisterAttached("IsDragItemsEnabled", typeof(bool), typeof(DragAndDropHelper), new PropertyMetadata(false));

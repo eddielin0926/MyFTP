@@ -147,6 +147,7 @@
     <Compile Include="Services\FileLogger.cs" />
     <Compile Include="Services\StoreService.cs" />
     <Compile Include="Utils\DragAndDropHelper.cs" />
+    <Compile Include="Utils\DragHelper.cs" />
     <Compile Include="Utils\FileHelper.cs" />
     <Compile Include="Services\ILogger.cs" />
     <Compile Include="Utils\LoggerFactory.cs" />
