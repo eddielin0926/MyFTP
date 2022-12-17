@@ -13,6 +13,13 @@ using Windows.System;
 
 namespace MyFTP.ViewModels
 {
+	class FtpInfo
+    {
+		public string Host = null;
+		public string Username = null;
+		public string Password = null;
+		public int Port = 0;
+	}
 	public class LoginViewModel : BindableItem
 	{
 		#region fields		
@@ -61,81 +68,24 @@ namespace MyFTP.ViewModels
 		{
 			ILogger logger = null;
 			FtpClient client = null;
-			string host = null;
-			string username = null;
-			string password = null;
-			int port = 0;
+			FtpInfo ftpInfo = null;
 
 			try
 			{
-				_isBusy = true;
-				LoginCommand.NotifyCanExecuteChanged();
 
-				if (arg == null)
-				{
-					host = Host;
-					username = Username;
-					password = Password;
-					port = Port;
-				}
-				else
-				{
-					host = arg.Host;
-					username = arg.Username;
-
-					var credential = arg.Item.GetCredentialFromLocker();
-					if (credential != null)
-					{
-						credential.RetrievePassword();
-						password = credential.Password;
-					}
-					port = arg.Port;
-				}
-
-
-				if (string.IsNullOrWhiteSpace(username) && string.IsNullOrWhiteSpace(password))
-				{
-					// Anonymous login
-					client = new FtpClient(host);
-					client.Port = Port;
-				}
-				else
-				{
-					client = new FtpClient(host, port, new NetworkCredential(username, password));
-				}
-
-				logger = LoggerFactory.CreateLogger($"{host}:{port}:{username}");
-				if (logger != null)
-				{
-					client.OnLogEvent += (s, e) => logger.WriteLine(e);
-				}
-
-				await client.ConnectAsync(token);
+				ftpInfo = SetLoginInfo(arg);
+				logger = LoggerFactory.CreateLogger($"{ftpInfo.Host}:{ftpInfo.Port}:{ftpInfo.Username}");
+				client = await ConnectServer(ftpInfo, logger, token);
 
 				if (SaveCredentials && arg == null)
 				{
-					var ftpHostSettings = await FtpHostSettings.GetOrCreateAsync(host, port, username);
-					if (!string.IsNullOrWhiteSpace(password))
-						ftpHostSettings.SavePasswordOnLocker(password);
+					var ftpHostSettings = await FtpHostSettings.GetOrCreateAsync(ftpInfo.Host, ftpInfo.Port, ftpInfo.Username);
+					if (!string.IsNullOrWhiteSpace(ftpInfo.Password))
+						ftpHostSettings.SavePasswordOnLocker(ftpInfo.Password);
 				}
-
-				// Load root item
-				var root = await client.GetObjectInfoAsync("/");
-
-				if (root is null)
-				{
-					var d = default(DateTime);
-					root = new FtpListItem("", "/", -1, true, d)
-					{
-						FullName = "/",
-						Type = FtpObjectType.Directory
-					};
-				}
-				var transferService = App.Current.Services.GetService<ITransferItemService>();
-				var dialogService = App.Current.Services.GetService<IDialogService>();
 
 				// Create FTPItemViewModel
-				var rootViewModel = new FtpListItemViewModel(client, root, null, transferService, dialogService, logger);
+				var rootViewModel = await CreateFtpItemViewModel(client, logger);
 
 				// Send to view
 				WeakReferenceMessenger.Default.Send<FtpListItemViewModel>(rootViewModel);
@@ -151,6 +101,78 @@ namespace MyFTP.ViewModels
 				_isBusy = false;
 				LoginCommand.NotifyCanExecuteChanged();
 			}
+		}
+
+		private FtpInfo SetLoginInfo(FtpHostSettingsViewModel arg)
+        {
+			FtpInfo ftpInfo = new FtpInfo();
+			_isBusy = true;
+			LoginCommand.NotifyCanExecuteChanged();
+
+			if (arg == null)
+			{
+				ftpInfo.Host = Host;
+				ftpInfo.Username = Username;
+				ftpInfo.Password = Password;
+				ftpInfo.Port = Port;
+			}
+			else
+			{
+				ftpInfo.Host = arg.Host;
+				ftpInfo.Username = arg.Username;
+
+				var credential = arg.Item.GetCredentialFromLocker();
+				if (credential != null)
+				{
+					credential.RetrievePassword();
+					ftpInfo.Password = credential.Password;
+				}
+				ftpInfo.Port = arg.Port;
+			}
+			return ftpInfo;
+		}
+        private async Task<FtpClient> ConnectServer(FtpInfo ftpInfo, ILogger logger, CancellationToken token)
+        {
+            FtpClient client = null;
+
+            if (string.IsNullOrWhiteSpace(ftpInfo.Username) && string.IsNullOrWhiteSpace(ftpInfo.Password))
+            {
+                // Anonymous login
+                client = new FtpClient(ftpInfo.Host);
+                client.Port = Port;
+            }
+            else
+            {
+                client = new FtpClient(ftpInfo.Host, ftpInfo.Port, new NetworkCredential(ftpInfo.Username, ftpInfo.Password));
+            }
+
+            if (logger != null)
+            {
+                client.OnLogEvent += (s, e) => logger.WriteLine(e);
+            }
+
+			await client.ConnectAsync(token);
+
+			return client;
+        }
+		private async Task<FtpListItemViewModel> CreateFtpItemViewModel(FtpClient client, ILogger logger)
+        {
+			// Load root item
+			var root = await client.GetObjectInfoAsync("/");
+
+			if (root is null)
+			{
+				var d = default(DateTime);
+				root = new FtpListItem("", "/", -1, true, d)
+				{
+					FullName = "/",
+					Type = FtpObjectType.Directory
+				};
+			}
+			var transferService = App.Current.Services.GetService<ITransferItemService>();
+			var dialogService = App.Current.Services.GetService<IDialogService>();
+
+			return new FtpListItemViewModel(client, root, null, transferService, dialogService, logger);
 		}
 
 		public void Delete(FtpHostSettingsViewModel item)
